@@ -63,13 +63,13 @@ class Config:
     batch_size: int = 4
     learning_rate: float = 2e-4
     weight_decay: float = 1e-4
-    epochs: int = 100
+    epochs: int = 150
     grad_clip_norm: float = 1.0
     huber_beta: float = 1.0
     lr_factor: float = 0.5
     lr_patience: int = 7
     lr_min: float = 1e-6
-    early_stopping_patience: int = 15
+    early_stopping_patience: int = 30
 
     # --- recording-level split ---
     # Never split individual samples randomly: samples from the same
