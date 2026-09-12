@@ -7,7 +7,7 @@ if you ever want to run this closer to real time.
 
 Usage:
     python eval_duration.py
-    python eval_duration.py --checkpoint best_angle_model.pt --recording 12winkel
+    python eval_duration.py --checkpoint best_angle_model.pt --recording 12winkels
 """
 
 import argparse
