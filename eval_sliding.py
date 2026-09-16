@@ -22,6 +22,8 @@ file, then plotted as line-only graphs (no markers, thicker lines) on
 the SAME axes, each window size in its own cividis-derived color, with
 a horizontal baseline at 12 degrees (the ground-truth angle for the
 '12winkel' recording). The plot uses the 'Solarize_Light2' style sheet.
+The y-axis is zoomed to 10-14 degrees by default to highlight the
+region around the baseline.
 
 NOTE ON TIMESTAMPS: this script re-bases each window's event timestamps
 so the window starts at t=0 (i.e. event_time - window_start). This
@@ -160,8 +162,8 @@ def main():
     parser.add_argument("--csv-out", default="sliding_window_predictions_multi.csv")
     parser.add_argument("--xmin", type=float, default=0.0, help="x-axis (time) min")
     parser.add_argument("--xmax", type=float, default=10.0, help="x-axis (time) max")
-    parser.add_argument("--ymin", type=float, default=0.0, help="y-axis (angle) min")
-    parser.add_argument("--ymax", type=float, default=15.0, help="y-axis (angle) max")
+    parser.add_argument("--ymin", type=float, default=10.0, help="y-axis (angle) min")
+    parser.add_argument("--ymax", type=float, default=14.0, help="y-axis (angle) max")
     args = parser.parse_args()
 
     config = Config()
