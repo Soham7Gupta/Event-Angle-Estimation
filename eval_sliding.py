@@ -1,7 +1,8 @@
 # eval_sliding_window_multi.py
 """
 Sliding-window inference on a single recording, run for SEVERAL window
-sizes and overlaid on one plot (different color per window size).
+sizes and overlaid on one plot (different color per window size, drawn
+from a sequential colormap for visual continuity).
 
 For each window size in WINDOW_SIZES_SEC:
     - The first prediction is made as soon as `window` seconds of data
@@ -16,9 +17,11 @@ For each window size in WINDOW_SIZES_SEC:
       window 3: [0.2s, 0.6s)
       ...
 
-All window sizes' predictions are plotted as dot+line graphs over time
-on the SAME axes, each in its own color, with a horizontal baseline at
-12 degrees (the ground-truth angle for the '12winkel' recording).
+All predictions (for every window size) are first written out to a CSV
+file, then plotted as line-only graphs (no markers, thicker lines) on
+the SAME axes, each window size in its own cividis-derived color, with
+a horizontal baseline at 12 degrees (the ground-truth angle for the
+'12winkel' recording). The plot uses the 'Solarize_Light2' style sheet.
 
 NOTE ON TIMESTAMPS: this script re-bases each window's event timestamps
 so the window starts at t=0 (i.e. event_time - window_start). This
@@ -34,6 +37,7 @@ Usage:
 """
 
 import argparse
+import csv
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -46,7 +50,6 @@ from model import EventWakeAngleModel
 
 
 WINDOW_SIZES_SEC = [0.4, 0.6, 0.8, 1.0]
-WINDOW_COLORS = ["tab:blue", "tab:green", "tab:orange", "tab:purple"]
 
 
 def denormalize(values, config):
@@ -135,6 +138,18 @@ def run_sliding_window(model, full_rec, full_duration, window, step, config, dev
     return np.array(window_ends), np.array(predictions)
 
 
+def save_results_csv(results, recording_id, true_angle, csv_path):
+    """Write all (window_size, window_end, predicted_angle) rows to CSV."""
+    with open(csv_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["recording_id", "true_angle_deg", "window_size_s",
+                          "window_end_s", "predicted_angle_deg"])
+        for window, (window_ends, predictions) in results.items():
+            for end, pred in zip(window_ends, predictions):
+                writer.writerow([recording_id, true_angle, window, end, pred])
+    print(f"Saved results to {csv_path}")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", default="best_angle_model.pt")
@@ -142,6 +157,7 @@ def main():
     parser.add_argument("--step", type=float, default=0.1, help="slide step in seconds")
     parser.add_argument("--baseline", type=float, default=12.0, help="baseline angle (deg) to plot")
     parser.add_argument("--out", default="sliding_window_predictions_multi.png")
+    parser.add_argument("--csv-out", default="sliding_window_predictions_multi.csv")
     parser.add_argument("--xmin", type=float, default=0.0, help="x-axis (time) min")
     parser.add_argument("--xmax", type=float, default=10.0, help="x-axis (time) max")
     parser.add_argument("--ymin", type=float, default=0.0, help="y-axis (angle) min")
@@ -179,18 +195,24 @@ def main():
         )
         results[window] = (window_ends, predictions)
 
-    # --- Plot: all window sizes overlaid, one color each ---
+    # --- Save results to CSV before plotting ---
+    save_results_csv(results, args.recording, true_angle, args.csv_out)
+
+    # --- Plot: all window sizes overlaid, line-only, cividis colormap ---
+    plt.style.use("Solarize_Light2")
+
+    cmap = plt.get_cmap("cividis")
+    colors = cmap(np.linspace(0.0, 1.0, len(WINDOW_SIZES_SEC)))
+
     plt.figure(figsize=(10, 5))
 
-    for window, color in zip(WINDOW_SIZES_SEC, WINDOW_COLORS):
+    for window, color in zip(WINDOW_SIZES_SEC, colors):
         window_ends, predictions = results[window]
         if len(predictions) == 0:
             print(f"No predictions for window={window:.2f}s — skipping in plot.")
             continue
-        plt.plot(window_ends, predictions, color=color, linewidth=1,
-                  alpha=0.6, zorder=1)
-        plt.scatter(window_ends, predictions, s=25, color=color,
-                    zorder=2, label=f"window={window:.1f}s")
+        plt.plot(window_ends, predictions, color=color, linewidth=2.5,
+                  label=f"window={window:.1f}s")
 
     plt.axhline(args.baseline, color="red", linestyle="--", linewidth=1.5,
                 label=f"Baseline ({args.baseline:.0f} deg)")
@@ -202,10 +224,9 @@ def main():
     plt.xlim(args.xmin, args.xmax)
     plt.ylim(args.ymin, args.ymax)
     plt.legend()
-    plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.savefig(args.out, dpi=150)
-    print(f"\nSaved plot to {args.out}")
+    print(f"Saved plot to {args.out}")
     plt.show()
 
 
