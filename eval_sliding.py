@@ -155,9 +155,9 @@ def save_results_csv(results, recording_id, true_angle, csv_path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", default="best_angle_model.pt")
-    parser.add_argument("--recording", default="12winkel")
+    parser.add_argument("--recording", default="-15winkel")
     parser.add_argument("--step", type=float, default=0.1, help="slide step in seconds")
-    parser.add_argument("--baseline", type=float, default=12.0, help="baseline angle (deg) to plot")
+    parser.add_argument("--baseline", type=float, default=-15, help="baseline angle (deg) to plot")
     parser.add_argument("--out", default="sliding_window_predictions_multi.png")
     parser.add_argument("--csv-out", default="sliding_window_predictions_multi.csv")
     parser.add_argument("--xmin", type=float, default=0.0, help="x-axis (time) min")
