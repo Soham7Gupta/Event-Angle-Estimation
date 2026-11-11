@@ -19,9 +19,9 @@ from force_model import ForceHead, EventForceModel, load_frozen_angle_model
 @torch.no_grad()
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("raw_path")
-    p.add_argument("--angle_ckpt", default="best_angle_model.pt")
-    p.add_argument("--force_ckpt", default="force_head.pt")
+    p.add_argument("raw_path", type=str)
+    p.add_argument("--angle_ckpt", default="/home/gupta/Desktop/EB/angle prediction model/best_angle_model.pt")
+    p.add_argument("--force_ckpt", default="/home/gupta/Desktop/EB/angle prediction model/force_head.pt")
     p.add_argument("--out", default="force_predictions.csv")
     args = p.parse_args()
 
